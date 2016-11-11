@@ -65,7 +65,7 @@ namespace gr {
         d_burst_post_len(burst_post_len), d_debug(debug), d_burst_debug_file(NULL)
 
     {
-        
+        d_n_data = 0;   
         const int nthreads = 1;
         d_fft = new fft::fft_complex(d_fft_size, true, nthreads);
 
@@ -348,6 +348,19 @@ namespace gr {
     uint64_t
     fft_burst_tagger_impl::get_n_tagged_bursts()
     {
+      static int64_t old = -1;
+      static uint8_t c = 0;
+      if(old == -1) {
+        old = d_n_data;
+      } else {
+        if(old == d_n_data) {
+          fprintf(stderr, "Nothing happened? %lu\n", d_n_data);
+          if(c++==2) {
+            exit(1);
+          }
+        }
+        old = d_n_data;
+      }
       return d_n_tagged_bursts;
     }
 
@@ -362,6 +375,7 @@ namespace gr {
       gr_complex *out = (gr_complex *) output_items[0];
 
       assert(noutput_items % d_fft_size == 0);
+      d_n_data += noutput_items;
 
       for(int i = 0; i < noutput_items; i += d_fft_size) {
         d_index = nitems_read(0) + i;

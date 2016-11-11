@@ -58,6 +58,7 @@ namespace gr {
       uint64_t d_index;
       uint64_t d_burst_id;
       uint64_t d_n_tagged_bursts;
+      uint64_t d_n_data;
 
       float * d_window_f;
       float * d_magnitude_f;
