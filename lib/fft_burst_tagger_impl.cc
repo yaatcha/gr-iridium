@@ -374,8 +374,12 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0] + d_burst_pre_len;
       gr_complex *out = (gr_complex *) output_items[0];
 
-      assert(noutput_items % d_fft_size == 0);
+      if(noutput_items % d_fft_size) {
+          fprintf(stderr, "noutput_items not a multiple of d_fft_size\n");
+      }
+
       d_n_data += noutput_items;
+      //return noutput_items;
 
       for(int i = 0; i < noutput_items; i += d_fft_size) {
         d_index = nitems_read(0) + i;
@@ -388,6 +392,7 @@ namespace gr {
         memcpy(&d_magnitude_shifted_f[d_fft_size/2], &d_magnitude_f[0], sizeof(float) * d_fft_size/2);
 
         if(update_filters_pre()) {
+          //fprintf(stderr, "u");
           update_bursts();
           if(d_debug) {
             extract_peaks();
@@ -401,6 +406,9 @@ namespace gr {
           delete_gone_bursts();
           update_burst_mask();
           create_new_bursts();
+        } else {
+            //fprintf(stderr, "!p");
+            //fprintf(stderr, "\n");
         }
         update_filters_post();
       }

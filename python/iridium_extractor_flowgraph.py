@@ -242,14 +242,16 @@ class FlowGraph(gr.top_block):
                 #tb.connect(source, converter, multi, self._fft_burst_tagger, burst_to_pdu)
                 tb.connect(source, converter, self._fft_burst_tagger, burst_to_pdu)
             else:
-                tb.connect(source, self._fft_burst_tagger, burst_to_pdu)
+                null = blocks.null_sink(gr.sizeof_gr_complex)
+                tb.connect(source, self._fft_burst_tagger, null)
+                #tb.connect(source, self._fft_burst_tagger, burst_to_pdu)
 
 
-            tb.msg_connect((burst_to_pdu, 'cpdus'), (burst_downmix, 'cpdus'))
-            tb.msg_connect((burst_downmix, 'burst_handled'), (burst_to_pdu, 'burst_handled'))
+            #tb.msg_connect((burst_to_pdu, 'cpdus'), (burst_downmix, 'cpdus'))
+            #tb.msg_connect((burst_downmix, 'burst_handled'), (burst_to_pdu, 'burst_handled'))
 
             # Final connection to the demodulator. It prints the output to stdout
-            tb.msg_connect((burst_downmix, 'cpdus'), (self._iridium_qpsk_demod, 'cpdus'))
+            #tb.msg_connect((burst_downmix, 'cpdus'), (self._iridium_qpsk_demod, 'cpdus'))
 
             self._burst_downmixers = [burst_downmix]
             self._burst_to_pdu_converters = [burst_to_pdu]
