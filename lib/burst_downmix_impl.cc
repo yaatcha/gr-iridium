@@ -439,7 +439,8 @@ namespace gr {
 
     int
     burst_downmix_impl::process_next_frame(float sample_rate, float center_frequency,
-            double offset, uint64_t sub_id, size_t burst_size, int start, float noise, float magnitude)
+            uint64_t seconds, double seconds_fraction, uint64_t sub_id, size_t burst_size, int start,
+            float noise, float magnitude)
     {
       /*
        * Use the center frequency to make some assumptions about the burst.
@@ -637,6 +638,10 @@ namespace gr {
         write_data_c(d_tmp_b + uw_start, frame_size, (char *)"signal-filtered-deci-cut-start-shift-rrc-rotate-cut", sub_id);
       }
 
+      seconds_fraction += start / (double) sample_rate;
+      seconds += std::floor(seconds_fraction);
+      seconds_fraction = seconds_fraction - std::floor(seconds_fraction);
+
       /*
        * Done :)
        */
@@ -647,7 +652,8 @@ namespace gr {
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("center_frequency"), pmt::mp(center_frequency));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("direction"), pmt::mp((int)direction));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("uw_start"), pmt::mp(correction));
-      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("offset"), pmt::mp(offset + start));
+      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds"), pmt::mp(seconds));
+      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds_fraction"), pmt::mp(seconds_fraction));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("id"), pmt::mp(sub_id));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("noise"), pmt::mp(noise));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("magnitude"), pmt::mp(magnitude));
@@ -677,7 +683,8 @@ namespace gr {
       float center_frequency = pmt::to_float(pmt::dict_ref(meta, pmt::mp("center_frequency"), pmt::PMT_NIL));
       float sample_rate = pmt::to_float(pmt::dict_ref(meta, pmt::mp("sample_rate"), pmt::PMT_NIL));
       uint64_t id = pmt::to_uint64(pmt::dict_ref(meta, pmt::mp("id"), pmt::PMT_NIL));
-      double offset = pmt::to_double(pmt::dict_ref(meta, pmt::mp("offset"), pmt::PMT_NIL));
+      uint64_t seconds = pmt::to_uint64(pmt::dict_ref(meta, pmt::mp("seconds"), pmt::PMT_NIL));
+      double seconds_fraction = pmt::to_double(pmt::dict_ref(meta, pmt::mp("seconds_fraction"), pmt::PMT_NIL));
       float noise = pmt::to_float(pmt::dict_ref(meta, pmt::mp("noise"), pmt::PMT_NIL));
       float magnitude = pmt::to_float(pmt::dict_ref(meta, pmt::mp("magnitude"), pmt::PMT_NIL));
 
@@ -689,7 +696,6 @@ namespace gr {
         printf("---------------> id:%" PRIu64 " len:%zu\n", id, burst_size);
         float absolute_frequency = center_frequency + relative_frequency * sample_rate;
         printf("relative_frequency=%f, absolute_frequency=%f\n", relative_frequency, absolute_frequency);
-        printf("offset=%f\n", offset);
         printf("sample_rate=%f\n", sample_rate);
       }
 
@@ -734,13 +740,15 @@ namespace gr {
       burst_size = burst_size / decimation;
 #else
       burst_size = (burst_size - d_input_fir.ntaps() + 1) / decimation;
-      offset += d_input_fir.ntaps()/2;
+
+      seconds_fraction += d_input_fir.ntaps() / 2 / (double) sample_rate;
+      seconds += std::floor(seconds_fraction);
+      seconds_fraction = seconds_fraction - std::floor(seconds_fraction);
 #endif
 
       d_input_fir.filterNdec(d_frame, d_tmp_a, burst_size, decimation);
 
       sample_rate /= decimation;
-      offset /= decimation;
 
       if(d_debug) {
         printf("---------------> id:%" PRIu64 " len:%f\n", id, burst_size/d_output_sample_rate);
@@ -757,8 +765,6 @@ namespace gr {
       // The burst might be shorter than d_search_depth.
       int N = std::min(d_search_depth, (int)burst_size);
 
-      // TODO: Maybe it safe and more efficient to add the offset
-      // to the call to volk.
       volk_32fc_magnitude_32f(d_magnitude_f, d_frame, N);
       memmove(d_magnitude_f + half_fir_size, d_magnitude_f, sizeof(float) * N);
 
@@ -814,13 +820,15 @@ namespace gr {
         int handled_samples;
         int sub_id = id;
         do {
-            handled_samples = process_next_frame(sample_rate, center_frequency, offset, sub_id, burst_size, start, noise, magnitude);
+            handled_samples = process_next_frame(sample_rate, center_frequency, seconds, seconds_fraction,
+                                                    sub_id, burst_size, start, noise, magnitude);
             start += handled_samples;
             // This is OK as ids are incremented by 10 by the burst tagger
             sub_id++;
         } while(d_handle_multiple_frames_per_burst && handled_samples > 0);
       } else {
-        process_next_frame(sample_rate, center_frequency, offset, id, burst_size, start, noise, magnitude);
+        process_next_frame(sample_rate, center_frequency, seconds, seconds_fraction, id, burst_size, start,
+                            noise, magnitude);
       }
 
       message_port_pub(pmt::mp("burst_handled"), pmt::mp(id));

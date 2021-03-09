@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(fft_burst_tagger.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(3a407d31732c7e6eb8e55628673ec05c)                     */
+/* BINDTOOL_HEADER_FILE_HASH(3267782268d2175988c502ee7786e4bb)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -46,6 +46,7 @@ void bind_fft_burst_tagger(py::module& m)
            py::arg("max_bursts") = 0,
            py::arg("threshold") = 7,
            py::arg("history_size") = 512,
+           py::arg("offline") = false,
            py::arg("debug") = false,
            D(fft_burst_tagger,make)
         )

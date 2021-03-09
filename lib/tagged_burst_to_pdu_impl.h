@@ -33,6 +33,8 @@ namespace gr {
         float relative_frequency;
         float center_frequency;
         float sample_rate;
+        uint64_t seconds;
+        double seconds_fraction;
         float noise;
         size_t len;
         gr_complex * data;

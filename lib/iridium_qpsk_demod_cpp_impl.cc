@@ -326,13 +326,19 @@ namespace gr {
       float center_frequency = pmt::to_float(pmt::dict_ref(meta, pmt::mp("center_frequency"), pmt::PMT_NIL));
       float sample_rate = pmt::to_float(pmt::dict_ref(meta, pmt::mp("sample_rate"), pmt::PMT_NIL));
       uint64_t sub_id = pmt::to_uint64(pmt::dict_ref(meta, pmt::mp("id"), pmt::PMT_NIL));
-      double offset = pmt::to_double(pmt::dict_ref(meta, pmt::mp("offset"), pmt::PMT_NIL));
       double uw_start = pmt::to_float(pmt::dict_ref(meta, pmt::mp("uw_start"), pmt::PMT_NIL));
       float noise = pmt::to_float(pmt::dict_ref(meta, pmt::mp("noise"), pmt::PMT_NIL));
       float magnitude = pmt::to_float(pmt::dict_ref(meta, pmt::mp("magnitude"), pmt::PMT_NIL));
 
+      uint64_t seconds = pmt::to_uint64(pmt::dict_ref(meta, pmt::mp("seconds"), pmt::PMT_NIL));
+      double seconds_fraction = pmt::to_double(pmt::dict_ref(meta, pmt::mp("seconds_fraction"), pmt::PMT_NIL));
+
       int sps = sample_rate / 25000;
-      double timestamp = (offset + uw_start) / (double)sample_rate;
+
+      seconds_fraction += uw_start / (double) sample_rate;
+      seconds += std::floor(seconds_fraction);
+      seconds_fraction = seconds_fraction - std::floor(seconds_fraction);
+
 
       update_buffer_sizes(burst_size);
 
@@ -379,7 +385,8 @@ namespace gr {
 
       pmt::pmt_t pdu_meta = pmt::make_dict();
       pmt::pmt_t pdu_vector = pmt::init_u8vector(d_bits.size(), d_bits);
-      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("timestamp"), pmt::mp(timestamp));
+      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds"), pmt::mp(seconds));
+      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds_fraction"), pmt::mp(seconds_fraction));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("center_frequency"), pmt::mp(center_frequency));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("id"), pmt::mp(sub_id));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("confidence"), pmt::mp(confidence));

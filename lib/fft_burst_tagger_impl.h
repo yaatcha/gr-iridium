@@ -47,6 +47,7 @@ namespace gr {
      private:
       bool d_history_primed;
       bool d_debug;
+      bool d_offline;
 
       int d_fft_size;
       int d_burst_pre_len;
@@ -59,6 +60,9 @@ namespace gr {
       uint64_t d_index;
       uint64_t d_burst_id;
       uint64_t d_n_tagged_bursts;
+      uint64_t d_last_rx_time_offset;
+      uint64_t d_last_rx_time_seconds;
+      double d_last_rx_time_seconds_fraction;
 
       float * d_window_f;
       float * d_magnitude_f;
@@ -95,7 +99,8 @@ namespace gr {
      public:
       fft_burst_tagger_impl(float center_frequency, int fft_size, int sample_rate,
                             int burst_pre_len, int burst_post_len, int burst_width,
-                            int max_bursts, float threshold, int history_size, bool debug);
+                            int max_bursts, float threshold, int history_size,
+                            bool offline, bool debug);
       ~fft_burst_tagger_impl();
 
       uint64_t get_n_tagged_bursts();
