@@ -339,6 +339,8 @@ namespace gr {
       seconds += std::floor(seconds_fraction);
       seconds_fraction = seconds_fraction - std::floor(seconds_fraction);
 
+      uint64_t timestamp = seconds * 1e9;
+      timestamp += seconds_fraction * 1e9;
 
       update_buffer_sizes(burst_size);
 
@@ -385,8 +387,7 @@ namespace gr {
 
       pmt::pmt_t pdu_meta = pmt::make_dict();
       pmt::pmt_t pdu_vector = pmt::init_u8vector(d_bits.size(), d_bits);
-      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds"), pmt::mp(seconds));
-      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("seconds_fraction"), pmt::mp(seconds_fraction));
+      pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("timestamp"), pmt::mp(timestamp));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("center_frequency"), pmt::mp(center_frequency));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("id"), pmt::mp(sub_id));
       pdu_meta = pmt::dict_add(pdu_meta, pmt::mp("confidence"), pmt::mp(confidence));

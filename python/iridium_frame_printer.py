@@ -55,11 +55,11 @@ class iridium_frame_printer(gr.sync_block):
         meta = gr.pmt.to_python(gr.pmt.car(msg_pmt))
         msg = gr.pmt.cdr(msg_pmt)
         bits = gr.pmt.u8vector_elements(msg)
-        timestamp = numpy.float128(meta['seconds']) + meta['seconds_fraction']
+        timestamp = meta['timestamp']
 
         if self._file_info is None:
-            self._t0 = meta['seconds']
-            self._file_info = "i-%d-t1" % self._t0
+            self._t0 = (timestamp // 1e9) * 1e9
+            self._file_info = "i-%d-t1" % (self._t0 // 1e9)
 
         freq = meta['center_frequency']
         id = meta['id']
@@ -69,7 +69,7 @@ class iridium_frame_printer(gr.sync_block):
         magnitude = meta['magnitude']
         n_symbols = meta['n_symbols']
         data = ''.join([str(x) for x in bits])
-        print("RAW: %s %012.4f %010d N:%05.2f%+06.2f I:%011d %3d%% %.5f %3d %s"%(self._file_info, (timestamp-self._t0)*1000,
+        print("RAW: %s %012.4f %010d N:%05.2f%+06.2f I:%011d %3d%% %.5f %3d %s"%(self._file_info, (timestamp-self._t0)/1e6,
             freq, magnitude, noise, id, confidence, level, (n_symbols - gr_iridium.UW_LENGTH), data))
 
     def work(self, input_items, output_items):

@@ -42,15 +42,13 @@ class frame_sorter(gr.sync_block):
         meta = gr.pmt.to_python(gr.pmt.car(msg_pmt))
         new_message = {'meta': meta, 'data': gr.pmt.to_python(gr.pmt.cdr(msg_pmt))}
 
-        timestamp = numpy.float128(meta['seconds']) + meta['seconds_fraction']
-
+        timestamp = meta['timestamp']
         freq = meta['center_frequency']
         confidence = meta['confidence']
 
         remove_count = 0
         for message in self._messages:
-            message_timestamp = numpy.float128(message['meta']['seconds']) + message['meta']['seconds_fraction']
-            if timestamp - message_timestamp > 1:
+            if timestamp - message['meta']['timestamp'] > 1e9:
                 self.message_port_pub(gr.pmt.intern('pdus'), gr.pmt.cons(gr.pmt.to_pmt(message['meta']), gr.pmt.to_pmt(message['data'])))
                 remove_count += 1
             else:
@@ -58,10 +56,7 @@ class frame_sorter(gr.sync_block):
         self._messages = self._messages[remove_count:]
 
         def dup(a, b):
-            a_timestamp = numpy.float128(a['meta']['seconds']) + a['meta']['seconds_fraction']
-            b_timestamp = numpy.float128(b['meta']['seconds']) + b['meta']['seconds_fraction']
-
-            if (abs(a_timestamp - b_timestamp) <= 0.001 and
+            if (abs(a['meta']['timestamp'] - b['meta']['timestamp']) <= 1000 and
                 abs(a['meta']['center_frequency'] - b['meta']['center_frequency']) < 10000):
                 return True
             return False
@@ -77,10 +72,9 @@ class frame_sorter(gr.sync_block):
 
         insert_index = 0
         for message in self._messages:
-            message_timestamp = numpy.float128(message['meta']['seconds']) + message['meta']['seconds_fraction']
-            if message_timestamp > timestamp:
+            if message['meta']['timestamp'] > timestamp:
                 break
-            if message_timestamp == timestamp and message['meta']['center_frequency'] > freq:
+            if message['meta']['timestamp'] == timestamp and message['meta']['center_frequency'] > freq:
                 break
             insert_index += 1
 
