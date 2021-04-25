@@ -35,7 +35,7 @@ class iridium_frame_printer(gr.sync_block):
             in_sig=None,
             out_sig=None)
 
-        if file_info is None:
+        if file_info == "":
             self._file_info = "i-%d-t1" % time.time()
         else:
             self._file_info = file_info
