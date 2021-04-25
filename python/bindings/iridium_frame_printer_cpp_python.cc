@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(iridium_frame_printer_cpp.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(84863dcceef9902aad0c3d53c9bf62e2)                     */
+/* BINDTOOL_HEADER_FILE_HASH(0c4f8e4401794ae4ea53418bd9e60783)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,13 +30,14 @@ namespace py = pybind11;
 void bind_iridium_frame_printer_cpp(py::module& m)
 {
 
-    using iridium_frame_printer_cpp    = gr::iridium::iridium_frame_printer_cpp;
+    using iridium_frame_printer_cpp    = ::gr::iridium::iridium_frame_printer_cpp;
 
 
     py::class_<iridium_frame_printer_cpp, gr::sync_block, gr::block, gr::basic_block,
         std::shared_ptr<iridium_frame_printer_cpp>>(m, "iridium_frame_printer_cpp", D(iridium_frame_printer_cpp))
 
         .def(py::init(&iridium_frame_printer_cpp::make),
+           py::arg("file_info"),
            D(iridium_frame_printer_cpp,make)
         )
         
