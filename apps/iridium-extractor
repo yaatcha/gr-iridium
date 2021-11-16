@@ -180,6 +180,10 @@ if __name__ == "__main__":
             d=cfg['soapy-source']
             cfg['source']='soapy'
             offline = False
+        elif 'uhd-source' in cfg:
+            d=cfg['uhd-source']
+            cfg['source']='uhd'
+            offline = False
         else:
             print("Unsupported .conf file format", file=sys.stderr)
             exit(1)
